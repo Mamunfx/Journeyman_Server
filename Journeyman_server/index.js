@@ -1,57 +1,69 @@
 require("dotenv").config();
-const express = require('express')
-const app = express()
+const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion } = require("mongodb");
+
+const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+app.use(cors()); 
 app.use(express.json());
 
-
+// MongoDB Connection
 const uri = `mongodb+srv://${process.env.user_db}:${process.env.user_db_password}@cluster5.ere94.mongodb.net/?retryWrites=true&w=majority&appName=Cluster5`;
-
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
   try {
+    await client.connect();
+    console.log("Connected to MongoDB successfully!");
+
     const usersCollection = client.db("Journeyman_db").collection("users");
 
-    // Creat a user 
-    app.post('/users',async(req,res)=>{
-      const user= req.body;
+    // Create a user
+    app.post("/users", async (req, res) => {
+      const user = req.body;
       const result = await usersCollection.insertOne(user);
       res.send(result);
-    })
+    });
 
     // Get all users
-    app.get('/users',async(req,res)=>{
+    app.get("/users", async (req, res) => {
       const cursor = usersCollection.find();
       const result = await cursor.toArray();
       res.send(result);
-    })
+    });
 
+    // Get a user by email
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.send(user);
+    });
 
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } catch (error) {
     console.error("Error in server setup:", error);
   }
 }
 run().catch(console.dir);
 
+// Default route
+app.get("/", (req, res) => {
+  res.send("Server is running successfully!");
+});
 
-app.get('/', (req, res) => {
-  res.send('server is ok!')
-})
-
+// Start the server
 app.listen(port, () => {
-  console.log(`Journeyman is running on port : ${port}`)
-})
+  console.log(`Journeyman is running on port ${port}`);
+});
