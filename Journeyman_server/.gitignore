@@ -1,3 +1,4 @@
 nodu_modules
 .env
 dist
+.vercel
