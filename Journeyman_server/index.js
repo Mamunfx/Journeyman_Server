@@ -441,7 +441,19 @@ app.delete("/withdrawals/:id", async (req, res) => {
     }
   })
 
-
+ // GET /payments/user/:email → list payments for a user
+ app.get('/payments/user/:email', async (req, res) => {
+  try {
+    const payments = await paymentsCollection
+      .find({ user_email: req.params.email })
+      .sort({ date: -1 })
+      .toArray()
+    res.json(payments)
+  } catch (err) {
+    console.error('❌ /payments/user error:', err)
+    res.status(500).json({ message: 'Server error.' })
+  }
+})
 
 
   } catch (error) {
