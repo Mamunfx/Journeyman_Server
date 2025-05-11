@@ -26,8 +26,8 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
-    console.log("Connected to MongoDB successfully!");
+    // await client.connect();
+    // console.log("Connected to MongoDB successfully!");
 
     const usersCollection = client.db("Journeyman_db").collection("users");
     const tasksCollection = client.db("Journeyman_db").collection("tasks");
@@ -457,7 +457,7 @@ app.delete("/withdrawals/:id", async (req, res) => {
 
 
   } catch (error) {
-    console.error("Error in server setup:", error);
+    // console.error("Error in server setup:", error);
   }
 }
 
@@ -470,5 +470,5 @@ app.get("/", (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-  console.log(`Journeyman is running on port ${port}`);
+  // console.log(`Journeyman is running on port ${port}`);
 });
