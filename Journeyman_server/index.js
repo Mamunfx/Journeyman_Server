@@ -33,6 +33,7 @@ async function run() {
     const tasksCollection = client.db("Journeyman_db").collection("tasks");
     const withdrawalsCollection = client.db("Journeyman_db").collection("withdrawals");
     const submissionCollection = client.db("Journeyman_db").collection("submissions");
+    const paymentsCollection = client.db("Journeyman_db").collection('payments')
 
     // Create a user
     app.post("/users", async (req, res) => {
@@ -411,6 +412,35 @@ app.delete("/withdrawals/:id", async (req, res) => {
     res.status(500).json({ message: "Internal server error." });
   }
 });
+
+
+
+  // POST /payments → save payment record & credit coins to user
+  app.post('/payments', async (req, res) => {
+    try {
+      const { user_email, coins, amount } = req.body
+      if (!user_email || !coins || !amount) {
+        return res.status(400).json({ message: 'Missing required fields.' })
+      }
+      const payment = {
+        user_email,
+        coins,
+        amount,
+        method: 'demo',
+        date: new Date()
+      }
+      await paymentsCollection.insertOne(payment)
+      await usersCollection.updateOne(
+        { email: user_email },
+        { $inc: { coins: coins } }
+      )
+      res.status(201).json({ success: true, payment })
+    } catch (err) {
+      console.error('❌ /payments error:', err)
+      res.status(500).json({ message: 'Server error.' })
+    }
+  })
+
 
 
 
