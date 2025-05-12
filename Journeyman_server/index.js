@@ -6,7 +6,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb"); // ← A
 const app = express();
 const port = process.env.PORT || 3000;
 app.use((req, res, next) => {
-  console.log(`→ ${req.method} ${req.url}`);
+  //console.log(`→ ${req.method} ${req.url}`);
   next();
 });
 
@@ -27,7 +27,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // await client.connect();
-    // console.log("Connected to MongoDB successfully!");
+    // //console.log("Connected to MongoDB successfully!");
 
     const usersCollection = client.db("Journeyman_db").collection("users");
     const tasksCollection = client.db("Journeyman_db").collection("tasks");
@@ -74,7 +74,7 @@ async function run() {
           const updatedUser = await usersCollection.findOne({ email });
           res.json({ message: "User updated successfully", user: updatedUser });
         } catch (err) {
-          console.error("Error updating user:", err);
+          //console.error("Error updating user:", err);
           res.status(500).json({ message: "Internal server error." });
         }
       });
@@ -118,7 +118,7 @@ async function run() {
           .toArray();
         res.json(tasks);
       } catch (error) {
-        console.error("Error fetching tasks:", error);
+        //console.error("Error fetching tasks:", error);
         res.status(500).json({ error: "Internal Server Error" });
       }
     });
@@ -157,7 +157,7 @@ async function run() {
           .status(201)
           .json({ submissionId: insertResult.insertedId, success: true });
       } catch (err) {
-        console.error("Error creating submission:", err);
+        //console.error("Error creating submission:", err);
         return res.status(500).json({ message: "Failed to create submission" });
       }
     });
@@ -188,7 +188,7 @@ async function run() {
           .toArray();
         res.json(submissions);
       } catch (error) {
-        console.error("Error fetching submissions:", error);
+        //console.error("Error fetching submissions:", error);
         res.status(500).json({ error: "Internal Server Error" });
       }
     });
@@ -202,7 +202,7 @@ async function run() {
           .toArray();
         res.json(submissions);
       } catch (error) {
-        console.error("Error fetching submissions:", error);
+        //console.error("Error fetching submissions:", error);
         res.status(500).json({ error: "Internal Server Error" });
       }
     });
@@ -211,10 +211,10 @@ async function run() {
     app.put("/submissions/:id", async (req, res) => {
       const { id } = req.params;
       const { status } = req.body;
-      console.log("→ PUT /submissions/:id", { id, status });
+      //console.log("→ PUT /submissions/:id", { id, status });
       // 1) Validate the ID
       if (!ObjectId.isValid(id)) {
-        console.warn(`Invalid ObjectId format: ${id}`);
+        //console.warn(`Invalid ObjectId format: ${id}`);
         return res.status(400).json({ error: "Invalid submission ID" });
       }
       // 2) Fetch the current submission to inspect previous status
@@ -222,11 +222,11 @@ async function run() {
       try {
         prevSub = await submissionCollection.findOne({ _id: new ObjectId(id) });
       } catch (err) {
-        console.error("Error fetching existing submission:", err);
+        //console.error("Error fetching existing submission:", err);
         return res.status(500).json({ error: "Internal Server Error" });
       }
       if (!prevSub) {
-        console.warn(`No submission found for ID ${id}`);
+        //console.warn(`No submission found for ID ${id}`);
         return res.status(404).json({ error: "Submission not found" });
       }
       // 3) Update the status field
@@ -237,7 +237,7 @@ async function run() {
           { $set: { status } }
         );
       } catch (err) {
-        console.error("Error updating submission status:", err);
+        //console.error("Error updating submission status:", err);
         return res.status(500).json({ error: "Internal Server Error" });
       }
       // 4) Post‐update logic: credit coins or refund worker slot
@@ -245,13 +245,13 @@ async function run() {
         // Only credit if moving into 'approved' from anything else
         if (status === "approved" && prevSub.status !== "approved") {
           const pay = Number(prevSub.payable_amount) || 0;
-          console.log(`Crediting ${pay} coins to ${prevSub.worker_email}`);
+          //console.log(`Crediting ${pay} coins to ${prevSub.worker_email}`);
           const uw = await usersCollection.updateOne(
             { email: prevSub.worker_email },
             { $inc: { coins: pay } }
           );
           if (uw.matchedCount === 0) {
-            console.warn(`⚠️ No user found with email ${prevSub.worker_email}`);
+            //console.warn(`⚠️ No user found with email ${prevSub.worker_email}`);
           }
         }
         // Only increment required_workers if moving from 'pending' → 'rejected'
@@ -261,11 +261,11 @@ async function run() {
             { $inc: { required_workers: 1 } }
           );
           if (tu.matchedCount === 0) {
-            console.warn(`⚠️ No task found with ID ${prevSub.task_id}`);
+            //console.warn(`⚠️ No task found with ID ${prevSub.task_id}`);
           }
         }
       } catch (err) {
-        console.error("Error in post‐update logic:", err);
+        //console.error("Error in post‐update logic:", err);
         // We still respond success on status change
       }
       // 5) Re‐fetch and return the updated submission
@@ -275,7 +275,7 @@ async function run() {
           _id: new ObjectId(id),
         });
       } catch (err) {
-        console.error("Error fetching updated submission:", err);
+        //console.error("Error fetching updated submission:", err);
         return res.status(500).json({ error: "Internal Server Error" });
       }
       return res.json({ success: true, submission: updatedSub });
@@ -328,7 +328,7 @@ app.post("/withdrawals", async (req, res) => {
       withdrawal,
     });
   } catch (err) {
-    console.error("Error creating withdrawal:", err);
+    //console.error("Error creating withdrawal:", err);
     res.status(500).json({ message: "Failed to create withdrawal." });
   }
 });
@@ -339,7 +339,7 @@ app.get("/withdrawals", async (req, res) => {
     const all = await withdrawalsCollection.find().toArray();
     res.json(all);
   } catch (err) {
-    console.error("Error fetching withdrawals:", err);
+    //console.error("Error fetching withdrawals:", err);
     res.status(500).json({ message: "Internal server error." });
   }
 });
@@ -353,7 +353,7 @@ app.get("/withdrawals/user/:email", async (req, res) => {
       .toArray();
     res.json(list);
   } catch (err) {
-    console.error("Error fetching user withdrawals:", err);
+    //console.error("Error fetching user withdrawals:", err);
     res.status(500).json({ message: "Internal server error." });
   }
 });
@@ -369,7 +369,7 @@ app.get("/withdrawals/:id", async (req, res) => {
     if (!wd) return res.status(404).json({ message: "Not found." });
     res.json(wd);
   } catch (err) {
-    console.error("Error fetching withdrawal:", err);
+    //console.error("Error fetching withdrawal:", err);
     res.status(500).json({ message: "Internal server error." });
   }
 });
@@ -391,7 +391,7 @@ app.put("/withdrawals/:id", async (req, res) => {
     const updated = await withdrawalsCollection.findOne({ _id: new ObjectId(id) });
     res.json({ success: true, withdrawal: updated });
   } catch (err) {
-    console.error("Error updating withdrawal:", err);
+    //console.error("Error updating withdrawal:", err);
     res.status(500).json({ message: "Internal server error." });
   }
 });
@@ -408,7 +408,7 @@ app.delete("/withdrawals/:id", async (req, res) => {
       return res.status(404).json({ message: "Not found." });
     res.json({ success: true });
   } catch (err) {
-    console.error("Error deleting withdrawal:", err);
+    //console.error("Error deleting withdrawal:", err);
     res.status(500).json({ message: "Internal server error." });
   }
 });
@@ -436,7 +436,7 @@ app.delete("/withdrawals/:id", async (req, res) => {
       )
       res.status(201).json({ success: true, payment })
     } catch (err) {
-      console.error('❌ /payments error:', err)
+      //console.error('❌ /payments error:', err)
       res.status(500).json({ message: 'Server error.' })
     }
   })
@@ -450,14 +450,14 @@ app.delete("/withdrawals/:id", async (req, res) => {
       .toArray()
     res.json(payments)
   } catch (err) {
-    console.error('❌ /payments/user error:', err)
+    //console.error('❌ /payments/user error:', err)
     res.status(500).json({ message: 'Server error.' })
   }
 })
 
 
   } catch (error) {
-    // console.error("Error in server setup:", error);
+    // //console.error("Error in server setup:", error);
   }
 }
 
@@ -470,5 +470,5 @@ app.get("/", (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-  // console.log(`Journeyman is running on port ${port}`);
+  // //console.log(`Journeyman is running on port ${port}`);
 });
